@@ -1,0 +1,13 @@
+/target
+**/*.rs.bk
+*.pdb
+
+# Local runtime state (logs) if the app is ever run from the repo root.
+/logs
+*.log
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
