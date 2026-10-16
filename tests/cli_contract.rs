@@ -2,18 +2,21 @@
 //! depend on, so it is pinned here.
 
 use clap::Parser;
-use tray_cli::cli::{Cli, Command};
+use tray_cli::{
+    app::UseCase,
+    cli::{Cli, Command},
+};
 
 #[test]
-fn a_bare_executable_is_equivalent_to_run() {
-    // Auto-start launches the binary with no arguments, so this must hold.
+fn a_bare_executable_opens_the_dashboard() {
     let cli = Cli::parse_from(["tray-cli"]);
-    assert_eq!(cli.command_or_default(), Command::Run);
+    assert_eq!(cli.command_or_default(), Command::Tui);
 }
 
 #[test]
 fn every_subcommand_round_trips() {
     let cases = [
+        ("tui", Command::Tui),
         ("run", Command::Run),
         ("enable-autostart", Command::EnableAutostart),
         ("disable-autostart", Command::DisableAutostart),
@@ -24,6 +27,22 @@ fn every_subcommand_round_trips() {
         let cli = Cli::parse_from(["tray-cli", arg]);
         assert_eq!(cli.command, Some(expected), "parsing `{arg}`");
     }
+}
+
+#[test]
+fn commands_map_onto_the_core_use_cases() {
+    // The dashboard is a presentation concern and must not reach the core.
+    assert_eq!(Command::Tui.use_case(), None);
+    assert_eq!(Command::Run.use_case(), Some(UseCase::Run));
+    assert_eq!(
+        Command::EnableAutostart.use_case(),
+        Some(UseCase::EnableAutoStart)
+    );
+    assert_eq!(
+        Command::DisableAutostart.use_case(),
+        Some(UseCase::DisableAutoStart)
+    );
+    assert_eq!(Command::Status.use_case(), Some(UseCase::ReportStatus));
 }
 
 #[test]

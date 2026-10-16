@@ -1,5 +1,5 @@
 # Pins the toolchain for reproducible local and CI builds.
-# Edition 2024 requires Rust 1.85+; `stable` is current.
+# Edition 2024 requires Rust 1.85+; `stable` is current (1.99+).
 [toolchain]
 channel = "stable"
 components = ["rustfmt", "clippy"]

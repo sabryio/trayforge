@@ -5,8 +5,11 @@
 //! that the core has never heard of.
 
 use tray_cli::{
-    app::Application, autostart::MockAutoStartService, cli::Command, error::AppError,
-    instance::MockInstanceLock, tray::MockTrayRunner,
+    app::{Application, Outcome, UseCase},
+    autostart::MockAutoStartService,
+    error::AppError,
+    instance::MockInstanceLock,
+    tray::MockTrayRunner,
 };
 
 /// Wire an [`Application`] from test doubles and hand back the spies.
@@ -28,8 +31,9 @@ fn run_starts_the_tray_process_once() {
     let (application, tray, _) =
         harness(MockInstanceLock::available(), MockAutoStartService::new());
 
-    application.execute(Command::Run).expect("run");
+    let outcome = application.execute(UseCase::Run).expect("run");
 
+    assert_eq!(outcome, Outcome::TrayStarted);
     assert_eq!(tray.run_count(), 1);
 }
 
@@ -37,7 +41,7 @@ fn run_starts_the_tray_process_once() {
 fn a_second_instance_is_refused_before_the_tray_starts() {
     let (application, tray, _) = harness(MockInstanceLock::taken(), MockAutoStartService::new());
 
-    let error = application.execute(Command::Run).expect_err("refused");
+    let error = application.execute(UseCase::Run).expect_err("refused");
 
     assert!(matches!(error, AppError::AlreadyRunning));
     assert_eq!(tray.run_count(), 0);
@@ -49,12 +53,24 @@ fn autostart_can_be_toggled_from_the_cli() {
         harness(MockInstanceLock::available(), MockAutoStartService::new());
 
     application
-        .execute(Command::EnableAutostart)
+        .execute(UseCase::EnableAutoStart)
         .expect("enable");
     assert!(autostart.state());
 
     application
-        .execute(Command::DisableAutostart)
+        .execute(UseCase::DisableAutoStart)
         .expect("disable");
     assert!(!autostart.state());
+}
+
+#[test]
+fn status_reports_the_current_autostart_state() {
+    let (application, _, _) = harness(
+        MockInstanceLock::available(),
+        MockAutoStartService::enabled(),
+    );
+
+    let outcome = application.execute(UseCase::ReportStatus).expect("status");
+
+    assert_eq!(outcome, Outcome::AutoStartStatus { enabled: true });
 }

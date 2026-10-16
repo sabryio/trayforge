@@ -5,13 +5,21 @@
 //! 1. parse the CLI,
 //! 2. detect configuration,
 //! 3. choose the concrete adapters, and
-//! 4. inject them into [`Application`].
+//! 4. inject them into [`Application`] (or hand them to the dashboard).
 
 use clap::Parser;
 
 use tray_cli::{
-    app::Application, autostart::DesktopAutoStartService, cli::Cli, config::AppConfig,
-    error::AppResult, instance::DesktopInstanceLock, logging, tray::DesktopTrayRunner,
+    app::Application,
+    autostart::DesktopAutoStartService,
+    cli::{Cli, Command},
+    config::AppConfig,
+    error::AppResult,
+    instance::DesktopInstanceLock,
+    logging, presentation,
+    supervisor::DesktopTraySupervisor,
+    tray::DesktopTrayRunner,
+    tui,
 };
 
 fn main() {
@@ -39,5 +47,19 @@ fn run() -> AppResult<()> {
 
     let application = Application::new(Box::new(autostart), Box::new(tray), Box::new(instance));
 
-    application.execute(cli.command_or_default())
+    match cli.command_or_default() {
+        // Presentation-only verb: the dashboard drives the core itself.
+        Command::Tui => {
+            let supervisor = DesktopTraySupervisor::new(config.clone());
+            tui::run(&application, Box::new(supervisor), &config)
+        }
+        command => {
+            let use_case = command
+                .use_case()
+                .expect("only the `tui` command lacks a core use case");
+            let outcome = application.execute(use_case)?;
+            println!("{}", presentation::describe(&outcome));
+            Ok(())
+        }
+    }
 }

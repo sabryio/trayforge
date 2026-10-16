@@ -26,16 +26,19 @@
 //!
 //! # Layout
 //!
-//! | Module        | Responsibility                                     |
-//! |---------------|----------------------------------------------------|
-//! | [`app`]       | Use-case orchestration (the "what")                |
-//! | [`cli`]       | Command-line surface (clap model)                  |
-//! | [`config`]    | Runtime configuration detection                    |
-//! | [`error`]     | Shared error model                                 |
-//! | [`instance`]  | Single-instance guard port + adapters              |
-//! | [`autostart`] | Login/auto-start port + adapters                   |
-//! | [`tray`]      | Tray icon/event-loop port + adapters               |
-//! | [`logging`]   | Structured, file-backed logging setup              |
+//! | Module          | Responsibility                                   |
+//! |-----------------|--------------------------------------------------|
+//! | [`app`]         | Use-case orchestration (the "what")              |
+//! | [`cli`]         | Command-line surface (clap model)                |
+//! | [`config`]      | Runtime configuration detection                  |
+//! | [`error`]       | Shared error model                               |
+//! | [`instance`]    | Single-instance guard port + adapters            |
+//! | [`autostart`]   | Login/auto-start port + adapters                 |
+//! | [`tray`]        | Tray icon/event-loop port + adapters             |
+//! | [`supervisor`]  | Tray child-process supervision port + adapters   |
+//! | [`tui`]         | Interactive dashboard (driving adapter)          |
+//! | [`presentation`]| Human-readable rendering of core outcomes        |
+//! | [`logging`]     | Structured, file-backed logging setup            |
 
 pub mod app;
 pub mod autostart;
@@ -44,4 +47,7 @@ pub mod config;
 pub mod error;
 pub mod instance;
 pub mod logging;
+pub mod presentation;
+pub mod supervisor;
 pub mod tray;
+pub mod tui;

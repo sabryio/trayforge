@@ -44,8 +44,21 @@
   desktops you support.
 * **Auto-start**: XDG autostart `.desktop` entries under `~/.config/autostart`.
 
+## Dashboard (all platforms)
+
+The interactive control panel is pure terminal code (`ratatui` + `crossterm`
+through `ratatui::crossterm`). It needs no desktop APIs and behaves identically
+everywhere. It launches the tray agent as a **child process** rather than
+in-process, because the tray's event loop wants the OS main thread while the
+dashboard owns the terminal.
+
+On Windows the child is spawned with `CREATE_NO_WINDOW` and null stdio so it
+never flashes a console or scribbles over the dashboard's alternate screen.
+
 ## Headless / CI environments
 
 The tray, auto-start and lock adapters are never exercised by the test suite —
 the tests inject the mock adapters, so `cargo test` runs everywhere, including a
-bare container. Only *building* needs the platform headers.
+bare container. The dashboard's state machine and renderer are likewise tested
+without a terminal, by drawing into ratatui's `TestBackend`. Only *building*
+needs the platform headers.

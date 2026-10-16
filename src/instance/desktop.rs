@@ -54,6 +54,30 @@ impl InstanceLock for DesktopInstanceLock {
             Ok(false)
         }
     }
+
+    fn is_available(&self) -> AppResult<bool> {
+        let held = self
+            .held
+            .lock()
+            .map_err(|_| AppError::Config("instance lock mutex poisoned".to_string()))?;
+
+        // If we already hold the guard, it is not available to anyone else.
+        if held.is_some() {
+            return Ok(false);
+        }
+        drop(held);
+
+        // Creating a temporary handle is enough to test for the named resource;
+        // dropping it immediately releases nothing because we never held it.
+        let probe = SingleInstance::new(&self.app_id).map_err(|err| {
+            AppError::Config(format!(
+                "could not probe instance lock '{}': {err}",
+                self.app_id
+            ))
+        })?;
+
+        Ok(probe.is_single())
+    }
 }
 
 #[cfg(test)]
@@ -78,5 +102,19 @@ mod tests {
 
         assert!(primary.try_acquire().expect("primary acquires"));
         assert!(!secondary.try_acquire().expect("secondary blocked"));
+    }
+
+    #[test]
+    fn probing_reports_whether_the_lock_is_free() {
+        let id = format!("tray-cli-test-probe-{}", std::process::id());
+        let holder = DesktopInstanceLock::new(id.clone());
+        let observer = DesktopInstanceLock::new(id);
+
+        assert!(observer.is_available().expect("free lock is available"));
+
+        assert!(holder.try_acquire().expect("holder acquires"));
+        assert!(!observer.is_available().expect("held lock is unavailable"));
+        // A holder always reports its own guard as taken.
+        assert!(!holder.is_available().expect("holder probe"));
     }
 }

@@ -27,4 +27,14 @@ pub trait InstanceLock: Send + Sync {
     /// Returns an error when the underlying OS mechanism fails outright (as
     /// opposed to simply being held by someone else).
     fn try_acquire(&self) -> AppResult<bool>;
+
+    /// Probe whether the lock is currently free, **without** acquiring it.
+    ///
+    /// This is a read-only observation used by the dashboard to show whether a
+    /// primary instance is already running elsewhere. It must not take ownership
+    /// of the guard.
+    ///
+    /// # Errors
+    /// Returns an error when the underlying OS mechanism fails outright.
+    fn is_available(&self) -> AppResult<bool>;
 }

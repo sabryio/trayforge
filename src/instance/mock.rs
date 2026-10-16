@@ -39,4 +39,23 @@ impl InstanceLock for MockInstanceLock {
     fn try_acquire(&self) -> AppResult<bool> {
         Ok(self.available.swap(false, Ordering::SeqCst))
     }
+
+    fn is_available(&self) -> AppResult<bool> {
+        Ok(self.available.load(Ordering::SeqCst))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn availability_reflects_ownership() {
+        let lock = MockInstanceLock::available();
+        assert!(lock.is_available().expect("probe"));
+
+        assert!(lock.try_acquire().expect("acquire"));
+        // Once acquired, the guard is no longer available to others.
+        assert!(!lock.is_available().expect("probe after acquire"));
+    }
 }

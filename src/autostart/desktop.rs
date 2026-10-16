@@ -16,6 +16,9 @@ use crate::{
 ///
 /// The executable path is taken from [`AppConfig`]; in production this should be
 /// the path of an *installed* binary, not a `target/debug` artifact.
+///
+/// The registration passes the `run` argument so that logging in starts the
+/// *tray agent* rather than opening the interactive dashboard.
 #[derive(Debug, Clone)]
 pub struct DesktopAutoStartService {
     config: AppConfig,
@@ -33,6 +36,7 @@ impl DesktopAutoStartService {
         AutoLaunchBuilder::new()
             .set_app_name(&self.config.app_name)
             .set_app_path(&self.config.executable_path_string())
+            .set_args(&["run"])
             .set_macos_launch_mode(MacOSLaunchMode::LaunchAgent)
             .build()
             .map_err(|err| AppError::AutoStart(err.to_string()))

@@ -13,12 +13,14 @@ is exactly why it lives behind a trait.
 ## What gets registered
 
 The value written is `current_exe()` — the path of the running binary — plus the
-app name (`tray-cli`) as the entry name. Consequently:
+app name (`tray-cli`) as the entry name, **and the `run` argument**. So:
 
-* Running `tray-cli enable-autostart` from `target/debug` registers the debug
-  binary. Install to a stable location first (see `packaging.md`).
-* The application is started with **no arguments** at login, which maps to
-  `Command::Run` (see `src/cli.rs`).
+* Running `tray-cli enable-autostart` from `target/debug` registers
+  `...\target\debug\tray-cli.exe run`. Install to a stable location first (see
+  `packaging.md`).
+* Logging in launches the **tray agent** directly. The interactive dashboard is
+  only opened when a human runs the bare executable, so auto-start never pops a
+  terminal UI at login.
 
 ## macOS LaunchAgent vs SMAppService
 

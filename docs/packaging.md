@@ -2,7 +2,7 @@
 
 ## 1. Install to a stable path
 
-Auto-start registers `current_exe()`, so never ship `target/{debug,release}`.
+Auto-start registers `current_exe() run`, so never ship `target/{debug,release}`.
 Install somewhere stable:
 
 | OS | Suggested location |
