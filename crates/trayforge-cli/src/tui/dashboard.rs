@@ -10,7 +10,7 @@ use std::time::{Duration, Instant};
 use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 
 use super::command::{COMMANDS, CommandId};
-use crate::supervisor::TrayState;
+use trayforge::supervisor::TrayState;
 
 /// How many activity lines are retained.
 const LOG_CAPACITY: usize = 200;

@@ -1,8 +1,16 @@
-# tray-cli
+# trayforge
 
 A small, production-shaped **CLI/background utility** that shows a **system tray
 icon** with a menu and can register itself to **start at login** — built in Rust
 with a clean, ports-and-adapters (hexagonal) architecture.
+
+The project is a **Cargo workspace** with a reusable library and a thin
+application on top of it:
+
+| Crate | Published as | What it is |
+|-------|--------------|------------|
+| [`crates/trayforge`](crates/trayforge) | **`trayforge`** | The reusable library: use-case orchestration, ports and platform adapters. No `clap`, no `ratatui`. |
+| [`crates/trayforge-cli`](crates/trayforge-cli) | **`trayforge-cli`** | The application: the `clap` command surface, the `ratatui` dashboard and human-readable output. Installs a `trayforge` binary. |
 
 A pure terminal program cannot draw a tray icon: the icon is created through
 desktop GUI APIs. So the binary is a CLI entrypoint that either opens an
@@ -10,12 +18,12 @@ interactive **terminal dashboard** (a [ratatui](https://ratatui.rs) control
 panel) or starts a long-running desktop event loop.
 
 ```text
-tray-cli              # open the interactive terminal dashboard
-tray-cli tui          #   …same, explicitly
-tray-cli run          # start the tray process (headless, used by auto-start)
-tray-cli enable-autostart
-tray-cli disable-autostart
-tray-cli status
+trayforge              # open the interactive terminal dashboard
+trayforge tui          #   …same, explicitly
+trayforge run          # start the tray process (headless, used by auto-start)
+trayforge enable-autostart
+trayforge disable-autostart
+trayforge status
 ```
 
 The dashboard is a live control panel: it shows auto-start and process state,
@@ -23,7 +31,7 @@ starts/stops the tray agent, flips auto-start, opens the log folder and re-reads
 status — all with the keyboard.
 
 ```text
-╭ tray-cli ────────────────────────────────────────────────────────────────╮
+╭ trayforge ───────────────────────────────────────────────────────────────╮
 │ a terminal control panel for the tray agent   ·   v0.1.0                 │
 ╰──────────────────────────────────────────────────────────────────────────╯
 ╭ Commands ───────────────────────────╮╭ Status ───────────────────────────╮
@@ -32,7 +40,7 @@ status — all with the keyboard.
 │   ■  Stop tray agent                ││ Instance lock ●  available         │
 │   ⇄  Toggle auto-start              ││                                    │
 │   ↻  Refresh status                 ││ Executable                         │
-│   ▤  Open log folder                ││ …\target\debug\tray-cli.exe        │
+│   ▤  Open log folder                ││ …\target\debug\trayforge.exe       │
 │   ✕  Quit dashboard                 ││                                    │
 ╰─────────────────────────────────────╯╰────────────────────────────────────╯
 ╭ Activity ────────────────────────────────────────────────────────────────╮
@@ -47,57 +55,72 @@ status — all with the keyboard.
 The interesting part is not the tray icon — it is that the tray icon, the login
 registration and the single-instance guard are all *replaceable* and *testable*.
 The core use-case layer never learns which OS API is behind a port, and it never
-prints: it returns structured [`Outcome`](src/app.rs) values that a *driving
-adapter* (the CLI or the dashboard) renders.
+prints: it returns structured [`Outcome`](crates/trayforge/src/app.rs) values
+that a *driving adapter* (the CLI or the dashboard) renders.
+
+The library/application split is what makes the domain reusable: another
+front-end (a GUI, a service, a different CLI) can depend on `trayforge` and reuse
+all of the policy without dragging a terminal toolkit along.
 
 ```text
-src/
-├─ main.rs            # composition root: parse, build adapters, inject
-├─ lib.rs             # public module surface
-├─ app.rs             # Application: use cases + Outcome (policy)
-├─ cli.rs             # clap model — argv in, `Command` out
-├─ presentation.rs    # render an Outcome for the CLI
-├─ config.rs          # AppConfig: identity + paths
-├─ error.rs           # AppError: one error model
-├─ logging.rs         # tracing → rotating file + stderr
-├─ instance/          # single-instance port + {desktop, mock} adapters
-│  ├─ mod.rs          #   trait InstanceLock
-│  ├─ desktop.rs      #   OS mutex / abstract socket / flock
-│  └─ mock.rs
-├─ autostart/         # login/auto-start port + {desktop, mock} adapters
-│  ├─ mod.rs          #   trait AutoStartService
-│  ├─ desktop.rs      #   Run key / LaunchAgent / XDG autostart
-│  └─ mock.rs
-├─ tray/              # tray runtime port + {desktop, mock} adapters
-│  ├─ mod.rs          #   trait TrayRunner
-│  ├─ desktop.rs      #   winit event loop + tray-icon + muda
-│  ├─ menu.rs         #   menu construction
-│  ├─ icon.rs         #   procedural RGBA icon (no asset/decoder deps)
-│  └─ mock.rs
-├─ supervisor/        # supervised tray child-process port + adapters
-│  ├─ mod.rs          #   trait TraySupervisor + TrayState
-│  ├─ desktop.rs      #   spawn/kill `tray-cli run` as a child
-│  └─ mock.rs
-└─ tui/               # interactive dashboard (driving adapter)
-   ├─ mod.rs          #   terminal loop + orchestration
-   ├─ command.rs      #   declarative command catalogue
-   ├─ dashboard.rs    #   state machine + key handling (ratatui-free)
-   └─ view.rs         #   rendering
+trayforge/                         # workspace root
+├─ Cargo.toml                      # [workspace] manifest
+├─ crates/
+│  ├─ trayforge/                   # ── reusable library (publishable) ──
+│  │  ├─ src/
+│  │  │  ├─ lib.rs                 # public module surface
+│  │  │  ├─ app.rs                 # Application: use cases + Outcome (policy)
+│  │  │  ├─ config.rs              # AppConfig: identity + paths
+│  │  │  ├─ error.rs               # AppError: one error model
+│  │  │  ├─ logging.rs             # tracing → rotating file + stderr
+│  │  │  ├─ instance/              # single-instance port + {desktop, mock}
+│  │  │  │  ├─ mod.rs              #   trait InstanceLock
+│  │  │  │  ├─ desktop.rs          #   OS mutex / abstract socket / flock
+│  │  │  │  └─ mock.rs
+│  │  │  ├─ autostart/             # login/auto-start port + {desktop, mock}
+│  │  │  │  ├─ mod.rs              #   trait AutoStartService
+│  │  │  │  ├─ desktop.rs          #   Run key / LaunchAgent / XDG autostart
+│  │  │  │  └─ mock.rs
+│  │  │  ├─ tray/                  # tray runtime port + {desktop, mock}
+│  │  │  │  ├─ mod.rs              #   trait TrayRunner
+│  │  │  │  ├─ desktop.rs          #   winit event loop + tray-icon + muda
+│  │  │  │  ├─ menu.rs             #   menu construction
+│  │  │  │  ├─ icon.rs             #   procedural RGBA icon (no asset deps)
+│  │  │  │  └─ mock.rs
+│  │  │  └─ supervisor/            # supervised tray child (port + adapters)
+│  │  │     ├─ mod.rs              #   trait TraySupervisor + TrayState
+│  │  │     ├─ desktop.rs          #   spawn/kill `trayforge run` as a child
+│  │  │     └─ mock.rs
+│  │  └─ tests/application.rs      # library used through its public surface
+│  └─ trayforge-cli/               # ── application (publishable) ──
+│     └─ src/
+│        ├─ main.rs                # composition root: parse, build, inject
+│        ├─ lib.rs                 # presentation modules (for tests)
+│        ├─ cli.rs                 # clap model — argv in, `Command` out
+│        ├─ presentation.rs        # render an Outcome for the CLI
+│        └─ tui/                   # interactive dashboard (driving adapter)
+│           ├─ mod.rs              #   terminal loop + orchestration
+│           ├─ command.rs          #   declarative command catalogue
+│           ├─ dashboard.rs        #   state machine + keys (ratatui-free)
+│           └─ view.rs             #   rendering
+├─ docs/                           # platform notes, packaging, autostart
+└─ .github/workflows/ci.yml
 ```
 
 Dependencies point **inward**: `app` depends on the traits, the traits know
-nothing about the platform, and only `main.rs` picks real adapters.
+nothing about the platform, and only `main.rs` picks real adapters. The
+application crate adds a second, outer layer of inversion — it depends on
+`trayforge`, never the other way around.
 
 ## How it maps to SOLID
 
 | Principle | Where |
 |-----------|-------|
-| **S**ingle responsibility | `cli` parses, `config` detects, `app` orchestrates, each adapter does exactly one OS thing, `tui` presents, `presentation` formats. |
+| **S**ingle responsibility | `trayforge-cli`'s `cli` parses, `presentation` formats, `tui` presents; `trayforge`'s `config` detects, `app` orchestrates, each adapter does exactly one OS thing. |
 | **O**pen/closed | Add `WindowsServiceAutoStart`, `HeadlessTrayRunner`, or a different lock by implementing the trait — no core change. |
 | **L**iskov | Any `AutoStartService`/`TrayRunner`/`InstanceLock`/`TraySupervisor` swaps in without surprising the orchestrator; the mocks prove it. |
 | **I**nterface segregation | Five tiny traits (`enable/disable/is_enabled`, `run`, `try_acquire/is_available`, `start/stop/state`) instead of one fat "system services" trait. |
-| **D**ependency inversion | `Application` holds `Box<dyn ...>`; `main.rs` is the only place that names concrete platform types. |
-
+| **D**ependency inversion | `Application` holds `Box<dyn ...>`; `main.rs` is the only place that names concrete platform types — and the *published library* depends on no presentation crate at all. |
 
 ## Usage
 
@@ -113,14 +136,15 @@ nothing about the platform, and only `main.rs` picks real adapters.
 ### Build & run
 
 ```sh
-cargo run                 # open the interactive dashboard
-cargo run -- tui          #   …same, explicitly
-cargo run -- run          # start the tray process (headless)
-cargo run -- enable-autostart
-cargo run -- status
-cargo run -- disable-autostart
-cargo test
-cargo clippy --all-targets -- -D warnings
+cargo run -p trayforge-cli              # open the interactive dashboard
+cargo run -p trayforge-cli -- tui       #   …same, explicitly
+cargo run -p trayforge-cli -- run       # start the tray process (headless)
+cargo run -p trayforge-cli -- enable-autostart
+cargo run -p trayforge-cli -- status
+cargo run -p trayforge-cli -- disable-autostart
+
+cargo test --workspace                  # unit + integration + doc tests
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 Increase log verbosity with `-v` (debug) or `-vv` (trace); `RUST_LOG` overrides
@@ -128,9 +152,9 @@ the level. Logs go to a per-user file and to stderr.
 
 | OS | Log file |
 |----|----------|
-| Windows | `%LOCALAPPDATA%\traycli\tray-cli\data\logs\tray-cli.log.<date>` |
-| macOS | `~/Library/Application Support/tray-cli/logs/tray-cli.log.<date>` |
-| Linux | `~/.local/state/tray-cli/logs/tray-cli.log.<date>` |
+| Windows | `%LOCALAPPDATA%\trayforge\trayforge\logs\trayforge.log.<date>` |
+| macOS | `~/Library/Application Support/trayforge/logs/trayforge.log.<date>` |
+| Linux | `~/.local/state/trayforge/logs/trayforge.log.<date>` |
 
 ## Behaviour notes
 
@@ -140,19 +164,36 @@ the level. Logs go to a per-user file and to stderr.
   opening a terminal UI.
 * **The dashboard supervises a child process.** The tray's desktop event loop
   wants the OS main thread and the dashboard owns the terminal, so "Start tray
-  agent" launches `tray-cli run` as a hidden child and tracks its pid. Quitting
+  agent" launches `trayforge run` as a hidden child and tracks its pid. Quitting
   the dashboard stops the child it started, so no agent is ever stranded.
-* **Single instance.** `run` first acquires an [`InstanceLock`]; a second copy
+* **Single instance.** `run` first acquires an `InstanceLock`; a second copy
   exits with `another instance is already running` instead of drawing a second
   icon. The dashboard *probes* the lock (read-only) to show whether an instance
   is already running.
 * **Auto-start path.** The executable registered is whatever `current_exe()`
-  returns plus `run`. During development that is `target/debug/tray-cli run` —
+  returns plus `run`. During development that is `target/debug/trayforge run` —
   install the binary somewhere stable before enabling production auto-start (see
   [`docs/packaging.md`](docs/packaging.md)).
 * **Icon.** The default icon is rendered procedurally into raw RGBA so the crate
   needs no image decoder or binary assets. See [`docs/packaging.md`](docs/packaging.md)
   to ship real artwork.
+
+## Publishing
+
+Both crates carry `description`, `keywords`, `categories`, `license` and their
+own README. `trayforge-cli` depends on `trayforge` by *path + version*, so they
+can be published in dependency order:
+
+```sh
+cargo publish -p trayforge          # the library first
+cargo publish -p trayforge-cli      # then the app
+```
+
+Installing the app gives you the `trayforge` binary:
+
+```sh
+cargo install trayforge-cli
+```
 
 ## Implementation notes (library API drift)
 

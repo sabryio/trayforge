@@ -1,8 +1,8 @@
 //! Tray-process supervision port.
 //!
-//! The interactive dashboard ([`crate::tui`]) must stay responsive while the
-//! tray agent runs, and the tray agent needs the desktop event loop on the
-//! *main* thread. So instead of running the tray in-process, the dashboard
+//! The interactive dashboard (in the `trayforge-cli` crate) must stay responsive
+//! while the tray agent runs, and the tray agent needs the desktop event loop on
+//! the *main* thread. So instead of running the tray in-process, the dashboard
 //! launches it as a child process and supervises it through this port.
 //!
 //! `run` (the auto-start entrypoint) still executes the tray in-process; only the

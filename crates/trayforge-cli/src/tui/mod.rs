@@ -1,6 +1,6 @@
 //! Interactive terminal dashboard (a driving adapter).
 //!
-//! Running `tray-cli` with no subcommand opens this ratatui dashboard: a live
+//! Running `trayforge` with no subcommand opens this ratatui dashboard: a live
 //! control panel that reports auto-start state and manages the tray agent.
 //!
 //! Design notes:
@@ -36,7 +36,7 @@ use ratatui::{
     },
 };
 
-use crate::{
+use trayforge::{
     app::{Application, UseCase},
     config::AppConfig,
     error::AppResult,
@@ -55,7 +55,7 @@ const TICK: Duration = Duration::from_millis(120);
 /// guard restores it on drop.
 ///
 /// # Errors
-/// Returns [`crate::error::AppError::Io`] if the terminal cannot be set up or
+/// Returns [`trayforge::error::AppError::Io`] if the terminal cannot be set up or
 /// drawn.
 pub fn run(
     application: &Application,
@@ -264,7 +264,7 @@ mod tests {
     use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
     use super::*;
-    use crate::{
+    use trayforge::{
         autostart::MockAutoStartService, instance::MockInstanceLock,
         supervisor::MockTraySupervisor, tray::MockTrayRunner,
     };
@@ -287,7 +287,7 @@ mod tests {
             app,
             autostart,
             supervisor: MockTraySupervisor::stopped(),
-            config: AppConfig::new("tray-cli", PathBuf::from("/opt/tray-cli")),
+            config: AppConfig::new("trayforge", PathBuf::from("/opt/trayforge")),
         }
     }
 

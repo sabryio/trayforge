@@ -4,7 +4,7 @@
 //! through its public surface and that the ports can be satisfied by stand-ins
 //! that the core has never heard of.
 
-use tray_cli::{
+use trayforge::{
     app::{Application, Outcome, UseCase},
     autostart::MockAutoStartService,
     error::AppError,

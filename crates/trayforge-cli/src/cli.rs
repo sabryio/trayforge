@@ -8,16 +8,16 @@
 
 use clap::{Parser, Subcommand};
 
-use crate::app::UseCase;
+use trayforge::app::UseCase;
 
-/// CLI entrypoint for `tray-cli`.
+/// CLI entrypoint for `trayforge`.
 ///
 /// Running the binary with no subcommand opens the interactive dashboard. The
 /// long-lived tray process is started with an explicit `run`, which is what the
 /// auto-start registration points at.
 #[derive(Debug, Parser)]
 #[command(
-    name = "tray-cli",
+    name = "trayforge",
     version,
     about = "CLI background app with a tray icon and auto-start support",
     long_about = None,
@@ -56,7 +56,7 @@ impl Command {
     /// verbs such as [`Command::Tui`].
     ///
     /// The dashboard is a driving adapter, not a use case, so it is dispatched by
-    /// the composition root rather than by [`crate::app::Application`].
+    /// the composition root rather than by [`trayforge::app::Application`].
     #[must_use]
     pub fn use_case(self) -> Option<UseCase> {
         match self {
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn no_arguments_opens_the_dashboard() {
-        let cli = Cli::parse_from(["tray-cli"]);
+        let cli = Cli::parse_from(["trayforge"]);
         assert_eq!(cli.command, None);
         assert_eq!(cli.command_or_default(), Command::Tui);
     }
@@ -101,7 +101,7 @@ mod tests {
 
         for (arg, expected) in cases {
             assert_eq!(
-                Cli::parse_from(["tray-cli", arg]).command,
+                Cli::parse_from(["trayforge", arg]).command,
                 Some(expected),
                 "parsing `{arg}`"
             );
@@ -125,11 +125,11 @@ mod tests {
 
     #[test]
     fn verbose_flag_counts_occurrences() {
-        assert_eq!(Cli::parse_from(["tray-cli", "-vv", "status"]).verbose, 2);
+        assert_eq!(Cli::parse_from(["trayforge", "-vv", "status"]).verbose, 2);
     }
 
     #[test]
     fn unknown_subcommand_is_rejected() {
-        assert!(Cli::try_parse_from(["tray-cli", "not-a-command"]).is_err());
+        assert!(Cli::try_parse_from(["trayforge", "not-a-command"]).is_err());
     }
 }

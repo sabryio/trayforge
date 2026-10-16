@@ -2,14 +2,12 @@
 //! depend on, so it is pinned here.
 
 use clap::Parser;
-use tray_cli::{
-    app::UseCase,
-    cli::{Cli, Command},
-};
+use trayforge::app::UseCase;
+use trayforge_cli::cli::{Cli, Command};
 
 #[test]
 fn a_bare_executable_opens_the_dashboard() {
-    let cli = Cli::parse_from(["tray-cli"]);
+    let cli = Cli::parse_from(["trayforge"]);
     assert_eq!(cli.command_or_default(), Command::Tui);
 }
 
@@ -24,7 +22,7 @@ fn every_subcommand_round_trips() {
     ];
 
     for (arg, expected) in cases {
-        let cli = Cli::parse_from(["tray-cli", arg]);
+        let cli = Cli::parse_from(["trayforge", arg]);
         assert_eq!(cli.command, Some(expected), "parsing `{arg}`");
     }
 }
@@ -47,7 +45,7 @@ fn commands_map_onto_the_core_use_cases() {
 
 #[test]
 fn verbose_is_global_and_repeatable() {
-    let cli = Cli::parse_from(["tray-cli", "status", "-vv"]);
+    let cli = Cli::parse_from(["trayforge", "status", "-vv"]);
     assert_eq!(cli.verbose, 2);
     assert_eq!(cli.command, Some(Command::Status));
 }

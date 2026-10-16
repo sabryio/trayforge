@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn first_acquire_succeeds_and_is_idempotent() {
-        let id = format!("tray-cli-test-{}", std::process::id());
+        let id = format!("trayforge-test-{}", std::process::id());
         let lock = DesktopInstanceLock::new(id);
 
         assert!(lock.try_acquire().expect("first acquire"));
@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn a_second_lock_object_cannot_acquire_the_same_id() {
-        let id = format!("tray-cli-test-dup-{}", std::process::id());
+        let id = format!("trayforge-test-dup-{}", std::process::id());
         let primary = DesktopInstanceLock::new(id.clone());
         let secondary = DesktopInstanceLock::new(id);
 
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn probing_reports_whether_the_lock_is_free() {
-        let id = format!("tray-cli-test-probe-{}", std::process::id());
+        let id = format!("trayforge-test-probe-{}", std::process::id());
         let holder = DesktopInstanceLock::new(id.clone());
         let observer = DesktopInstanceLock::new(id);
 

@@ -3514,24 +3514,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tray-cli"
-version = "0.1.0"
-dependencies = [
- "auto-launch",
- "clap",
- "directories",
- "muda",
- "ratatui",
- "single-instance",
- "thiserror 2.0.21",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "tray-icon",
- "winit",
-]
-
-[[package]]
 name = "tray-icon"
 version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3550,6 +3532,31 @@ dependencies = [
  "png",
  "thiserror 2.0.21",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "trayforge"
+version = "0.1.0"
+dependencies = [
+ "auto-launch",
+ "directories",
+ "muda",
+ "single-instance",
+ "thiserror 2.0.21",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "tray-icon",
+ "winit",
+]
+
+[[package]]
+name = "trayforge-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ratatui",
+ "trayforge",
 ]
 
 [[package]]

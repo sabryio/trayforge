@@ -1,23 +1,26 @@
-[package]
-name = "tray-cli"
+# Workspace root.
+#
+#   trayforge      — the reusable library (no clap, no ratatui)
+#   trayforge-cli  — the application: clap command surface + ratatui dashboard
+#
+# Keeping the library free of presentation dependencies is what makes it
+# reusable: other front-ends (a GUI, a service, another CLI) can depend on
+# `trayforge` without dragging a terminal toolkit along.
+
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.99.0"
-description = "A small CLI/background utility with a system tray icon and cross-platform auto-start."
 license = "MIT OR Apache-2.0"
-readme = "README.md"
 keywords = ["tray", "cli", "autostart", "desktop", "utility"]
 categories = ["command-line-utilities", "gui"]
 
-[lib]
-name = "tray_cli"
-path = "src/lib.rs"
-
-[[bin]]
-name = "tray-cli"
-path = "src/main.rs"
-
-[dependencies]
+[workspace.dependencies]
+# Shared third-party crates, pinned in exactly one place.
 auto-launch = "0.6.0"
 clap = { version = "4.6.7", features = ["derive"] }
 directories = "6.0.0"
@@ -31,14 +34,18 @@ tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tray-icon = "0.26.1"
 winit = "0.30.13"
 
+# Intra-workspace dependency. The `version` is what gets published; the `path`
+# is what is used locally.
+trayforge = { version = "0.1.0", path = "crates/trayforge" }
+
 [profile.release]
 opt-level = 3
 lto = "thin"
 codegen-units = 1
 strip = "symbols"
 
-[lints.rust]
+[workspace.lints.rust]
 unsafe_code = "forbid"
 
-[lints.clippy]
+[workspace.lints.clippy]
 all = { level = "warn", priority = -1 }

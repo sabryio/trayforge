@@ -9,22 +9,19 @@
 
 use clap::Parser;
 
-use tray_cli::{
-    app::Application,
-    autostart::DesktopAutoStartService,
-    cli::{Cli, Command},
-    config::AppConfig,
-    error::AppResult,
-    instance::DesktopInstanceLock,
-    logging, presentation,
-    supervisor::DesktopTraySupervisor,
+use trayforge::{
+    app::Application, autostart::DesktopAutoStartService, config::AppConfig, error::AppResult,
+    instance::DesktopInstanceLock, logging, supervisor::DesktopTraySupervisor,
     tray::DesktopTrayRunner,
-    tui,
+};
+use trayforge_cli::{
+    cli::{Cli, Command},
+    presentation, tui,
 };
 
 fn main() {
     if let Err(err) = run() {
-        eprintln!("tray-cli: {err}");
+        eprintln!("trayforge: {err}");
         std::process::exit(1);
     }
 }

@@ -16,12 +16,12 @@ use crate::error::AppResult;
 /// Reverse-DNS-ish identity used for OS-level registration (instance mutex,
 /// login item name, log directory).
 const QUALIFIER: &str = "dev";
-const ORGANIZATION: &str = "traycli";
+const ORGANIZATION: &str = "trayforge";
 
 /// Immutable configuration shared by every adapter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AppConfig {
-    /// Human/app name, e.g. `tray-cli`.
+    /// Human/app name, e.g. `trayforge`.
     pub app_name: String,
     /// Stable, filesystem-safe identifier used for locking and registration.
     pub app_id: String,
@@ -90,17 +90,17 @@ mod tests {
 
     #[test]
     fn new_derives_stable_identity() {
-        let config = AppConfig::new("tray-cli", PathBuf::from("/opt/tray-cli"));
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge"));
 
-        assert_eq!(config.app_id, "dev.traycli.tray-cli");
-        assert_eq!(config.tooltip, "tray-cli — running");
+        assert_eq!(config.app_id, "dev.trayforge.trayforge");
+        assert_eq!(config.tooltip, "trayforge — running");
         assert!(config.log_dir.ends_with("logs"));
     }
 
     #[test]
     fn executable_path_is_reported_lossily() {
-        let config = AppConfig::new("tray-cli", PathBuf::from("/opt/tray-cli"));
-        assert_eq!(config.executable_path_string(), "/opt/tray-cli");
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge"));
+        assert_eq!(config.executable_path_string(), "/opt/trayforge");
     }
 
     #[test]

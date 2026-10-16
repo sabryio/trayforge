@@ -11,10 +11,10 @@ use ratatui::{
     widgets::{Block, BorderType, List, ListItem, ListState, Padding, Paragraph, Wrap},
 };
 
-use crate::config::AppConfig;
+use trayforge::config::AppConfig;
 
 use super::dashboard::{Dashboard, Level};
-use crate::supervisor::TrayState;
+use trayforge::supervisor::TrayState;
 
 /// Colour palette, kept in one place so the look stays coherent.
 mod palette {
@@ -54,7 +54,7 @@ pub fn render(frame: &mut Frame, dashboard: &Dashboard, config: &AppConfig) {
 
 /// The rounded banner at the top.
 fn render_banner(frame: &mut Frame, area: Rect) {
-    let block = panel().title(title_line(" tray-cli "));
+    let block = panel().title(title_line(" trayforge "));
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
@@ -325,7 +325,7 @@ mod tests {
 
     #[test]
     fn renders_every_section() {
-        let config = AppConfig::new("tray-cli", PathBuf::from("/opt/tray-cli/bin/tray-cli"));
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge/bin/trayforge"));
         let dashboard = sample(&config);
 
         let mut terminal = Terminal::new(TestBackend::new(96, 30)).expect("terminal");
@@ -337,7 +337,7 @@ mod tests {
         println!("\n{text}\n");
 
         for needle in [
-            "tray-cli",
+            "trayforge",
             "Commands",
             "Start tray agent",
             "Status",
@@ -353,7 +353,7 @@ mod tests {
 
     #[test]
     fn renders_at_a_small_size_without_panicking() {
-        let config = AppConfig::new("tray-cli", PathBuf::from("/opt/tray-cli"));
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge"));
         let dashboard = sample(&config);
 
         let mut terminal = Terminal::new(TestBackend::new(40, 12)).expect("terminal");

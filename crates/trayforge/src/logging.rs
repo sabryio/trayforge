@@ -22,7 +22,7 @@ pub struct LoggingGuard {
     _file: Option<WorkerGuard>,
 }
 
-/// Install the global tracing subscriber, writing to `<log_dir>/tray-cli.log`
+/// Install the global tracing subscriber, writing to `<log_dir>/<app_name>.log`
 /// and to stderr.
 ///
 /// `verbose` counts `-v` flags: `0` = `info`, `1` = `debug`, `2+` = `trace`. A
@@ -33,7 +33,8 @@ pub struct LoggingGuard {
 pub fn init(config: &AppConfig, verbose: u8) -> AppResult<LoggingGuard> {
     fs::create_dir_all(&config.log_dir)?;
 
-    let file_appender = tracing_appender::rolling::daily(&config.log_dir, "tray-cli.log");
+    let file_appender =
+        tracing_appender::rolling::daily(&config.log_dir, format!("{}.log", config.app_name));
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
     let filter =
@@ -84,12 +85,12 @@ mod tests {
 
     #[test]
     fn init_creates_the_log_directory() {
-        let dir = std::env::temp_dir().join(format!("tray-cli-log-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("trayforge-log-test-{}", std::process::id()));
         let config = AppConfig {
-            app_name: "tray-cli".to_string(),
-            app_id: "dev.traycli.tray-cli".to_string(),
+            app_name: "trayforge".to_string(),
+            app_id: "dev.trayforge.trayforge".to_string(),
             executable_path: std::env::current_exe().expect("exe"),
-            tooltip: "tray-cli".to_string(),
+            tooltip: "trayforge".to_string(),
             log_dir: dir.clone(),
         };
 

@@ -15,7 +15,7 @@
 
 * **Tray**: the icon must be created on the main thread *after* the event loop is
   running. In winit that means the first `resumed` event, which is where
-  `src/tray/desktop.rs` builds the icon.
+  `crates/trayforge/src/tray/desktop.rs` builds the icon.
 * **Auto-start**: LaunchAgent by default; use `MacOSLaunchMode::SMAppService`
   when distributing a notarized `.app` bundle, and register the bundle rather
   than the inner executable.
@@ -38,7 +38,7 @@
   tray-icon = { version = "0.26", default-features = false, features = ["ksni"] }
   ```
 
-  The builder API in `src/tray/desktop.rs` is unchanged; some event variants
+  The builder API in `crates/trayforge/src/tray/desktop.rs` is unchanged; some event variants
   (e.g. left-click) are simply unavailable under ksni.
 * **Wayland**: global menus / tray behaviour varies by compositor. Test on the
   desktops you support.

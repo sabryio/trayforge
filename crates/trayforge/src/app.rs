@@ -19,7 +19,7 @@ use crate::{
 
 /// A single headless use case the core can perform.
 ///
-/// This is deliberately distinct from [`crate::cli::Command`]: the interactive
+/// This is deliberately distinct from the CLI's `Command` enum: the interactive
 /// dashboard is a presentation concern and has no use-case equivalent, so it can
 /// never reach the core by accident.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

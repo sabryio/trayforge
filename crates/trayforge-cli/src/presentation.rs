@@ -1,11 +1,11 @@
 //! Human-readable rendering of core [`Outcome`]s for the CLI.
 //!
-//! Presentation lives at the edge, not in the core: [`crate::app::Application`]
+//! Presentation lives at the edge, not in the core: [`trayforge::app::Application`]
 //! returns structured results and this module turns them into the text a
 //! one-shot command prints. The interactive dashboard ignores this and draws its
 //! own view of the same values.
 
-use crate::app::Outcome;
+use trayforge::app::Outcome;
 
 /// Render an [`Outcome`] as the single line a CLI command prints.
 #[must_use]

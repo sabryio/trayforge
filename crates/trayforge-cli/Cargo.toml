@@ -1,0 +1,28 @@
+[package]
+name = "trayforge-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "A terminal control panel and CLI for cross-platform tray-icon background apps — clap command surface, ratatui dashboard and auto-start management, built on the trayforge library."
+documentation = "https://docs.rs/trayforge-cli"
+readme = "README.md"
+
+[lib]
+name = "trayforge_cli"
+path = "src/lib.rs"
+
+# Installs as `trayforge`, even though the package is `trayforge-cli`.
+[[bin]]
+name = "trayforge"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+ratatui.workspace = true
+trayforge.workspace = true
+
+[lints]
+workspace = true

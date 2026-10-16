@@ -16,7 +16,7 @@ use crate::{
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-/// Spawns `tray-cli run` as a detached child and tracks its handle.
+/// Spawns `trayforge run` as a detached child and tracks its handle.
 ///
 /// The child's stdio is redirected to the null device so it cannot scribble over
 /// the dashboard's alternate screen. The child is killed when the supervisor is

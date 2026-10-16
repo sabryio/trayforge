@@ -1,0 +1,30 @@
+[package]
+name = "trayforge"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Reusable building blocks for cross-platform system-tray background apps: tray runtime, auto-start, single-instance locking and process supervision, behind small replaceable ports."
+documentation = "https://docs.rs/trayforge"
+readme = "README.md"
+
+[lib]
+name = "trayforge"
+path = "src/lib.rs"
+
+[dependencies]
+auto-launch.workspace = true
+directories.workspace = true
+muda.workspace = true
+single-instance.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber.workspace = true
+tray-icon.workspace = true
+winit.workspace = true
+
+[lints]
+workspace = true
