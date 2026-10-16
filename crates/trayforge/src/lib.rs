@@ -39,8 +39,9 @@
 //! | [`error`]       | Shared error model                               |
 //! | [`instance`]    | Single-instance guard port + adapters            |
 //! | [`autostart`]   | Login/auto-start port + adapters                 |
-//! | [`tray`]        | Tray icon/event-loop port + adapters             |
+//! | [`tray`]        | Tray icon/menu/event-loop port + adapters        |
 //! | [`supervisor`]  | Tray child-process supervision port + adapters   |
+//! | [`system`]      | "Open this" / "run that" primitives for the OS   |
 //! | [`logging`]     | Structured, file-backed logging setup            |
 //!
 //! # Example
@@ -65,4 +66,5 @@ pub mod error;
 pub mod instance;
 pub mod logging;
 pub mod supervisor;
+pub mod system;
 pub mod tray;

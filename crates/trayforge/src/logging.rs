@@ -92,6 +92,7 @@ mod tests {
             executable_path: std::env::current_exe().expect("exe"),
             tooltip: "trayforge".to_string(),
             log_dir: dir.clone(),
+            tray: crate::tray::TraySpec::standard("trayforge"),
         };
 
         let guard = init(&config, 0).expect("logging init");

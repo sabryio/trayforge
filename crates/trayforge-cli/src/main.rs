@@ -10,9 +10,14 @@
 use clap::Parser;
 
 use trayforge::{
-    app::Application, autostart::DesktopAutoStartService, config::AppConfig, error::AppResult,
-    instance::DesktopInstanceLock, logging, supervisor::DesktopTraySupervisor,
-    tray::DesktopTrayRunner,
+    app::Application,
+    autostart::DesktopAutoStartService,
+    config::AppConfig,
+    error::AppResult,
+    instance::DesktopInstanceLock,
+    logging,
+    supervisor::DesktopTraySupervisor,
+    tray::{DesktopTrayRunner, TraySpec},
 };
 use trayforge_cli::{
     cli::{Cli, Command},
@@ -32,7 +37,11 @@ fn main() {
 /// once, with a sensible exit code, and the happy path stays linear.
 fn run() -> AppResult<()> {
     let cli = Cli::parse();
-    let config = AppConfig::detect()?;
+
+    // The menu is data: `--item` turns into a TraySpec that the config carries
+    // to whichever tray backend ends up rendering it.
+    let tray = TraySpec::from_cli_args(&cli.item)?;
+    let config = AppConfig::detect()?.with_tray(tray);
 
     // The guard owns the log writer thread for the whole process lifetime.
     let _logging = logging::init(&config, cli.verbose)?;

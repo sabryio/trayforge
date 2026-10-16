@@ -39,11 +39,16 @@ impl TrayState {
 
 /// Starts, stops and reports on the tray child process.
 pub trait TraySupervisor: Send + Sync {
-    /// Ensure a tray child process is running, returning its new state.
+    /// Ensure a tray child process is running, appending `extra_args` to its
+    /// command line, and return its new state.
+    ///
+    /// The supervisor stays deliberately ignorant of *what* those arguments mean:
+    /// the caller decides the encoding, which keeps this port reusable for any
+    /// child process.
     ///
     /// # Errors
     /// Returns [`crate::error::AppError::Tray`] if the process cannot be spawned.
-    fn start(&self) -> AppResult<TrayState>;
+    fn start(&self, extra_args: &[String]) -> AppResult<TrayState>;
 
     /// Terminate the child process started by this supervisor, if any.
     ///

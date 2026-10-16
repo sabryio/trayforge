@@ -43,10 +43,11 @@ impl DesktopTraySupervisor {
     }
 
     /// Build the command used to launch the tray child.
-    fn command(&self) -> Command {
+    fn command(&self, extra_args: &[String]) -> Command {
         let mut command = Command::new(&self.executable);
         command
             .arg("run")
+            .args(extra_args)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
@@ -62,7 +63,7 @@ impl DesktopTraySupervisor {
 }
 
 impl TraySupervisor for DesktopTraySupervisor {
-    fn start(&self) -> AppResult<TrayState> {
+    fn start(&self, extra_args: &[String]) -> AppResult<TrayState> {
         let mut slot = self.slot()?;
 
         // Reuse an already-running child instead of spawning a second one.
@@ -73,7 +74,7 @@ impl TraySupervisor for DesktopTraySupervisor {
         }
 
         let child = self
-            .command()
+            .command(extra_args)
             .spawn()
             .map_err(|err| AppError::Tray(format!("could not start tray process: {err}")))?;
         let pid = child.id();

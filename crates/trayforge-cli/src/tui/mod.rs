@@ -20,8 +20,6 @@ mod view;
 
 use std::{
     io::{self, Stdout},
-    path::Path,
-    process::Command,
     time::Duration,
 };
 
@@ -41,6 +39,7 @@ use trayforge::{
     config::AppConfig,
     error::AppResult,
     supervisor::{TrayState, TraySupervisor},
+    system,
 };
 
 use command::CommandId;
@@ -183,7 +182,10 @@ impl<'a> Tui<'a> {
     }
 
     fn start_tray(&mut self) {
-        match self.supervisor.start() {
+        // Hand the dashboard's menu to the child, so the agent the dashboard
+        // starts shows exactly the same entries as the dashboard describes.
+        let args = self.config.tray.to_cli_args();
+        match self.supervisor.start(&args) {
             Ok(TrayState::Running { pid }) => {
                 self.dashboard
                     .record(Level::Success, format!("tray agent started (pid {pid})"));
@@ -231,7 +233,14 @@ impl<'a> Tui<'a> {
 
     fn open_logs(&mut self) {
         let dir = self.config.log_dir.clone();
-        match reveal_in_file_manager(&dir) {
+
+        if let Err(err) = std::fs::create_dir_all(&dir) {
+            self.dashboard
+                .record(Level::Error, format!("could not create logs folder: {err}"));
+            return;
+        }
+
+        match system::open(&dir.to_string_lossy()) {
             Ok(()) => self
                 .dashboard
                 .record(Level::Info, format!("opened {}", dir.display())),
@@ -242,21 +251,6 @@ impl<'a> Tui<'a> {
     }
 }
 
-/// Ask the OS file manager to reveal `dir`, creating it first if needed.
-fn reveal_in_file_manager(dir: &Path) -> io::Result<()> {
-    std::fs::create_dir_all(dir)?;
-
-    #[cfg(windows)]
-    let mut command = Command::new("explorer");
-    #[cfg(target_os = "macos")]
-    let mut command = Command::new("open");
-    #[cfg(all(unix, not(target_os = "macos")))]
-    let mut command = Command::new("xdg-open");
-
-    command.arg(dir).spawn()?;
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -265,8 +259,10 @@ mod tests {
 
     use super::*;
     use trayforge::{
-        autostart::MockAutoStartService, instance::MockInstanceLock,
-        supervisor::MockTraySupervisor, tray::MockTrayRunner,
+        autostart::MockAutoStartService,
+        instance::MockInstanceLock,
+        supervisor::MockTraySupervisor,
+        tray::{MockTrayRunner, TrayItem, TraySpec},
     };
 
     struct Harness {
@@ -334,6 +330,35 @@ mod tests {
                 .any(|line| line.text.contains("started")),
             "expected a start entry in {:?}",
             tui.dashboard.log
+        );
+    }
+
+    #[test]
+    fn starting_the_tray_forwards_the_menu_to_the_child() {
+        let autostart = MockAutoStartService::new();
+        let app = Application::new(
+            Box::new(autostart),
+            Box::new(MockTrayRunner::new()),
+            Box::new(MockInstanceLock::available()),
+        );
+        let supervisor = MockTraySupervisor::stopped();
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge")).with_tray(
+            TraySpec::custom(vec![TrayItem::Action {
+                label: "Restart".to_string(),
+                command: "make restart".to_string(),
+            }]),
+        );
+
+        let mut tui = Tui::new(&app, Box::new(supervisor.clone()), &config);
+        tui.execute(CommandId::StartTray);
+
+        assert_eq!(
+            supervisor.last_start_args(),
+            vec![
+                "action|Restart|make restart".to_string(),
+                "quit".to_string(),
+            ],
+            "the child must inherit the dashboard's menu"
         );
     }
 

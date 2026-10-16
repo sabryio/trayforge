@@ -9,9 +9,11 @@ pub mod desktop;
 pub mod icon;
 pub mod menu;
 pub mod mock;
+pub mod spec;
 
 pub use desktop::DesktopTrayRunner;
 pub use mock::MockTrayRunner;
+pub use spec::{TrayAction, TrayItem, TraySpec};
 
 use crate::error::AppResult;
 

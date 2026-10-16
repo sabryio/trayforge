@@ -25,10 +25,16 @@ use winit::{
     window::WindowId,
 };
 
-use super::{TrayRunner, icon::DEFAULT_ICON_SIZE, icon::default_icon, menu::TrayMenu};
+use super::{
+    TrayRunner,
+    icon::{DEFAULT_ICON_SIZE, default_icon},
+    menu::TrayMenu,
+    spec::TrayAction,
+};
 use crate::{
     config::AppConfig,
     error::{AppError, AppResult},
+    system,
 };
 
 /// Events forwarded from the tray/menu backends into the winit loop.
@@ -117,7 +123,7 @@ impl TrayApplication {
     /// Create the icon and menu. Must run *inside* the event loop so a GUI loop
     /// is already pumping (required on Windows and macOS).
     fn start(&mut self) -> AppResult<()> {
-        let menu = TrayMenu::build(&self.config.app_name)?;
+        let menu = TrayMenu::build(&self.config.tray)?;
         let icon = default_icon(DEFAULT_ICON_SIZE)?;
 
         let tray_icon = TrayIconBuilder::new()
@@ -169,12 +175,21 @@ impl ApplicationHandler<UserEvent> for TrayApplication {
 
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: UserEvent) {
         match event {
-            UserEvent::Menu(id) => {
-                if self.menu.as_ref().is_some_and(|menu| menu.is_quit(&id)) {
+            UserEvent::Menu(id) => match self.menu.as_ref().and_then(|menu| menu.resolve(&id)) {
+                Some(TrayAction::Quit) => {
                     tracing::info!("quit requested from tray menu");
                     event_loop.exit();
                 }
-            }
+                Some(TrayAction::Shell(command)) => match system::shell(command) {
+                    Ok(()) => tracing::info!(%command, "tray action launched"),
+                    Err(err) => tracing::error!(%err, %command, "tray action failed"),
+                },
+                Some(TrayAction::Open(target)) => match system::open(target) {
+                    Ok(()) => tracing::info!(%target, "tray entry opened"),
+                    Err(err) => tracing::error!(%err, %target, "could not open tray entry"),
+                },
+                None => tracing::trace!(?id, "unhandled tray menu event"),
+            },
             UserEvent::Tray(event) => {
                 tracing::trace!(?event, "tray icon event");
             }

@@ -49,3 +49,27 @@ fn verbose_is_global_and_repeatable() {
     assert_eq!(cli.verbose, 2);
     assert_eq!(cli.command, Some(Command::Status));
 }
+
+#[test]
+fn unknown_subcommands_are_rejected() {
+    assert!(Cli::try_parse_from(["trayforge", "not-a-command"]).is_err());
+}
+
+#[test]
+fn item_is_global_and_repeatable() {
+    let cli = Cli::parse_from([
+        "trayforge",
+        "--item",
+        "action|Restart|make restart",
+        "--item",
+        "sep",
+        "run",
+    ]);
+
+    assert_eq!(cli.command, Some(Command::Run));
+    assert_eq!(
+        cli.item,
+        vec!["action|Restart|make restart".to_string(), "sep".to_string()],
+        "--item must be accepted on either side of the subcommand"
+    );
+}

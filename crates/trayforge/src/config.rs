@@ -11,7 +11,7 @@ use std::{
 
 use directories::ProjectDirs;
 
-use crate::error::AppResult;
+use crate::{error::AppResult, tray::TraySpec};
 
 /// Reverse-DNS-ish identity used for OS-level registration (instance mutex,
 /// login item name, log directory).
@@ -31,6 +31,8 @@ pub struct AppConfig {
     pub tooltip: String,
     /// Directory where structured logs are written.
     pub log_dir: PathBuf,
+    /// Tray context menu rendered by the tray backend.
+    pub tray: TraySpec,
 }
 
 impl AppConfig {
@@ -53,6 +55,7 @@ impl AppConfig {
         let app_id = format!("{QUALIFIER}.{ORGANIZATION}.{app_name}");
         let log_dir = default_log_dir(&app_name);
         let tooltip = format!("{app_name} — running");
+        let tray = TraySpec::standard(&app_name);
 
         Self {
             app_id,
@@ -60,7 +63,15 @@ impl AppConfig {
             log_dir,
             app_name,
             executable_path,
+            tray,
         }
+    }
+
+    /// Replace the tray menu with a custom one.
+    #[must_use]
+    pub fn with_tray(mut self, tray: TraySpec) -> Self {
+        self.tray = tray;
+        self
     }
 
     /// The executable path as a lossy [`String`], which is the shape OS
@@ -95,6 +106,14 @@ mod tests {
         assert_eq!(config.app_id, "dev.trayforge.trayforge");
         assert_eq!(config.tooltip, "trayforge — running");
         assert!(config.log_dir.ends_with("logs"));
+    }
+
+    #[test]
+    fn with_tray_replaces_the_menu() {
+        let config = AppConfig::new("trayforge", PathBuf::from("/opt/trayforge"))
+            .with_tray(TraySpec::default());
+
+        assert_eq!(config.tray, TraySpec::default());
     }
 
     #[test]
